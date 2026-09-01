@@ -167,13 +167,19 @@ jobs:
           for f in compile test lint; do
             log="$RUNNER_TEMP/$f.log"
             [ -f "$log" ] || continue
-            errors=$(grep -E "^(e: |w: .*error|FAILURE:|Caused by:|> [A-Z].*failed)" "$log" | grep -vE "^w: " | head -60 || true)
+            # Kotlin ("e: "), javac ("error:") and KSP/Room ("[ksp]") all report
+            # differently, so match all of them rather than one format.
+            errors=$(grep -nE "^e: |error: |\[ksp\]|Caused by: |^> Task .* FAILED" "$log" | head -50 || true)
             if [ -n "$errors" ]; then
-              echo "--- $f ---"
+              echo "--- $f: matched errors ---"
               echo "$errors"
             fi
+            if grep -q "FAILURE: Build failed" "$log"; then
+              echo "--- $f: raw tail ---"
+              # Everything from the last failing task onward, which is where an
+              # unmatched error format will be visible.
+              awk '/^> Task .* FAILED/{found=NR} END{}' "$log" >/dev/null 2>&1 || true
+              tail -60 "$log"
+            fi
           done
-          if [ -f "$RUNNER_TEMP/lint.log" ]; then
-            grep -E "^\s+(Error|Warning):" "$RUNNER_TEMP/lint.log" | head -30 || true
-          fi
           echo "=========== END PING ERROR DIGEST ==========="
