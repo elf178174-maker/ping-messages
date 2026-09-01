@@ -1,0 +1,53 @@
+# ---- Android / Gradle ----
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+android/app/release/
+android/app/debug/
+lint-results*.html
+lint-results*.xml
+
+# ---- Signing / secrets (never commit) ----
+*.jks
+*.keystore
+*.p12
+*.pem
+*.der
+keystore.properties
+google-services.json
+signing.properties
+secrets.properties
+.env
+.env.*
+!.env.example
+
+# ---- Node / backend ----
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# ---- Editors / OS ----
+*.swp
+*~
+Thumbs.db
+.vscode/
+!.vscode/extensions.json
+
+# ---- Local media / uploads ----
+backend/storage/
+backend/tmp/

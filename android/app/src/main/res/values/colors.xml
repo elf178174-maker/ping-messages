@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Only the handful of colours the platform needs before Compose takes over
+         (splash screen, window background, adaptive icon). The full Material 3
+         colour scheme lives in ui/theme/Color.kt. -->
+    <color name="brand_teal">#006B5B</color>
+    <color name="brand_teal_dark">#00382F</color>
+    <color name="brand_on_teal">#FFFFFF</color>
+    <color name="splash_background_light">#FAFDFA</color>
+    <color name="splash_background_dark">#101413</color>
+    <color name="icon_background">#7BF8DF</color>
+    <color name="black">#000000</color>
+</resources>
