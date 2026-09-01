@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.PushPin
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Groups
@@ -293,7 +293,7 @@ private fun TrailingMarkers(conversation: Conversation) {
         }
         if (conversation.isPinned && !conversation.hasUnread) {
             Icon(
-                Icons.AutoMirrored.Filled.PushPin,
+                Icons.Default.PushPin,
                 contentDescription = stringResource(R.string.cd_pinned),
                 modifier = Modifier.size(15.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
