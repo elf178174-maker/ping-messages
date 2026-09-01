@@ -57,15 +57,21 @@ jobs:
       # easier to read than the same error surfacing from inside a lint or assemble task.
       - name: Compile
         working-directory: android
-        run: ./gradlew :app:compileDebugKotlin --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew :app:compileDebugKotlin --console=plain 2>&1 | tee "$RUNNER_TEMP/compile.log"
 
       - name: Run unit tests
         working-directory: android
-        run: ./gradlew :app:testDebugUnitTest --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew :app:testDebugUnitTest --console=plain 2>&1 | tee "$RUNNER_TEMP/test.log"
 
       - name: Run Android Lint
         working-directory: android
-        run: ./gradlew :app:lintDebug --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew :app:lintDebug --console=plain 2>&1 | tee "$RUNNER_TEMP/lint.log"
 
       - name: Assemble the debug APK
         working-directory: android
@@ -151,3 +157,23 @@ jobs:
               echo "No APK was produced — check the job logs above."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # Runs last on failure so the actual errors are the final thing in the job log,
+      # instead of being buried under a few hundred lines of Gradle stack trace.
+      - name: Error digest
+        if: failure()
+        run: |
+          echo "=============== PING ERROR DIGEST ==============="
+          for f in compile test lint; do
+            log="$RUNNER_TEMP/$f.log"
+            [ -f "$log" ] || continue
+            errors=$(grep -E "^(e: |w: .*error|FAILURE:|Caused by:|> [A-Z].*failed)" "$log" | grep -vE "^w: " | head -60 || true)
+            if [ -n "$errors" ]; then
+              echo "--- $f ---"
+              echo "$errors"
+            fi
+          done
+          if [ -f "$RUNNER_TEMP/lint.log" ]; then
+            grep -E "^\s+(Error|Warning):" "$RUNNER_TEMP/lint.log" | head -30 || true
+          fi
+          echo "=========== END PING ERROR DIGEST ==========="
