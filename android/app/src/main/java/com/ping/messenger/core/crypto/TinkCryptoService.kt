@@ -11,7 +11,7 @@ import com.google.crypto.tink.TinkJsonProtoKeysetFormat
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.aead.PredefinedAeadParameters
 import com.google.crypto.tink.hybrid.HybridConfig
-import com.google.crypto.tink.hybrid.PredefinedHybridParameters
+import com.google.crypto.tink.hybrid.HpkeParameters
 import com.ping.messenger.core.common.DispatcherProvider
 import com.ping.messenger.core.datastore.SecureStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -57,9 +57,7 @@ class TinkCryptoService @Inject constructor(
                 return@withLock exportPublicKey(existing)
             }
 
-            val handle = KeysetHandle.generateNew(
-                PredefinedHybridParameters.DHKEM_X25519_HKDF_SHA256_HKDF_SHA256_AES_256_GCM,
-            )
+            val handle = KeysetHandle.generateNew(HPKE_PARAMETERS)
             val serialized = TinkJsonProtoKeysetFormat.serializeKeyset(
                 handle,
                 InsecureSecretKeyAccess.get(),
@@ -96,8 +94,6 @@ class TinkCryptoService @Inject constructor(
                 ciphertext = ciphertext.base64(),
                 senderPublicKey = publicKey(),
             )
-        } catch (e: GeneralSecurityFailure) {
-            throw e
         } catch (e: Exception) {
             throw CryptoException("Failed to encrypt for recipient", e)
         }
@@ -228,10 +224,22 @@ class TinkCryptoService @Inject constructor(
 
     private fun String.unbase64(): ByteArray = Base64.decode(this, Base64.NO_WRAP)
 
-    private class GeneralSecurityFailure(message: String) : CryptoException(message)
-
     private companion object {
         const val KEY_PRIVATE_KEYSET = "identity_keyset_v1"
+
+        /**
+         * HPKE with X25519 key agreement, HKDF-SHA256 and AES-256-GCM (RFC 9180).
+         *
+         * Built explicitly rather than taken from `PredefinedHybridParameters`, whose entries
+         * are all NIST-P256 ECIES; X25519 is the faster, misuse-resistant curve and is what
+         * every modern messaging protocol has settled on.
+         */
+        val HPKE_PARAMETERS: HpkeParameters = HpkeParameters.builder()
+            .setVariant(HpkeParameters.Variant.TINK)
+            .setKemId(HpkeParameters.KemId.DHKEM_X25519_HKDF_SHA256)
+            .setKdfId(HpkeParameters.KdfId.HKDF_SHA256)
+            .setAeadId(HpkeParameters.AeadId.AES_256_GCM)
+            .build()
 
         /**
          * Associated data bound into every ciphertext. It is not secret; its job is to make a

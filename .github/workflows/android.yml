@@ -53,13 +53,19 @@ jobs:
           echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "Building version $VERSION_NAME ($VERSION_CODE)"
 
-      - name: Run Android Lint
+      # Compilation first: it is the fastest signal, and a Kotlin error reported here is far
+      # easier to read than the same error surfacing from inside a lint or assemble task.
+      - name: Compile
         working-directory: android
-        run: ./gradlew :app:lintDebug --stacktrace
+        run: ./gradlew :app:compileDebugKotlin --stacktrace
 
       - name: Run unit tests
         working-directory: android
         run: ./gradlew :app:testDebugUnitTest --stacktrace
+
+      - name: Run Android Lint
+        working-directory: android
+        run: ./gradlew :app:lintDebug --stacktrace
 
       - name: Assemble the debug APK
         working-directory: android
