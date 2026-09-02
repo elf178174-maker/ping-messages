@@ -2,11 +2,6 @@ package com.ping.messenger.core.common
 
 /** Helpers for the small amount of text parsing the app does locally. */
 
-private val EMOJI_ONLY = Regex(
-    "^[\\p{So}\\p{Cn}\\uFE0F\\u200D\\u20E3\\p{IsEmoji_Presentation}\\s]+$",
-    RegexOption.IGNORE_CASE,
-)
-
 private val URL_REGEX = Regex(
     """(?i)\bhttps?://[-\w+&@#/%?=~|!:,.;]*[-\w+&@#/%=~|]""",
 )

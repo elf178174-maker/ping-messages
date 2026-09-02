@@ -1,6 +1,9 @@
 package com.ping.messenger.domain.repository
 
 import androidx.paging.PagingData
+import com.ping.messenger.core.backup.BackupHandle
+import com.ping.messenger.core.backup.BackupManifest
+import com.ping.messenger.core.backup.RestoreSummary
 import com.ping.messenger.core.common.Outcome
 import com.ping.messenger.domain.model.Attachment
 import com.ping.messenger.domain.model.BackupStatus
@@ -220,8 +223,20 @@ interface SettingsRepository {
     suspend fun storageBreakdown(): Map<MessageKind, Long>
     suspend fun cacheSizeBytes(): Long
     suspend fun clearCache(): Long
-    suspend fun runBackup(includeMedia: Boolean): Outcome<Long>
-    suspend fun restoreBackup(path: String): Outcome<Int>
+    fun observeBackups(): Flow<List<BackupHandle>>
+
+    /**
+     * Writes an encrypted archive. [passphrase] null means seal it with this device's key,
+     * which is what an automatic background backup does; such an archive can only be restored
+     * on this install. Returns the archive's size in bytes.
+     */
+    suspend fun runBackup(includeMedia: Boolean, passphrase: String?): Outcome<Long>
+
+    /** Reads an archive's manifest without restoring it, so a restore can be confirmed first. */
+    suspend fun inspectBackup(path: String, passphrase: String?): Outcome<BackupManifest>
+
+    suspend fun restoreBackup(path: String, passphrase: String?): Outcome<RestoreSummary>
+    suspend fun deleteBackup(id: String): Outcome<Unit>
     suspend fun addReminder(conversationId: String, messageId: String?, note: String, at: Long)
     suspend fun completeReminder(id: String)
 }

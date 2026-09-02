@@ -246,16 +246,6 @@ class SettingsViewModel @Inject constructor(
         preferences.setBackupIncludeMedia(on)
     }
 
-    fun runBackup() = busy {
-        val includeMedia = uiState.value.backup.includeMedia
-        when (val result = settings.runBackup(includeMedia)) {
-            is Outcome.Success -> _events.emit(
-                SettingsEvent.Message("Backup complete (${formatBytes(result.value)})"),
-            )
-            is Outcome.Failure -> emitFailure(result.error)
-        }
-    }
-
     // ---- Advanced ---------------------------------------------------------
 
     fun setServerUrl(url: String) = viewModelScope.launch { preferences.setServerUrl(url) }

@@ -196,7 +196,11 @@ class BackupWorker @AssistedInject constructor(
         val settings = preferences.backup.first()
         if (!settings.automaticEnabled) return Result.success()
 
-        return when (settingsRepository.runBackup(settings.includeMedia)) {
+        // Automatic backups are sealed with the device key: nothing can prompt for a
+        // passphrase from a background worker, and storing one to use here would defeat the
+        // point of having it. The backup screen says such an archive is restorable on this
+        // device only, and offers a passphrase-sealed export for a portable one.
+        return when (settingsRepository.runBackup(settings.includeMedia, passphrase = null)) {
             is Outcome.Success -> Result.success()
             // A failed backup retries rather than being silently skipped; the Settings screen
             // shows the last successful timestamp either way, so the user can see the gap.

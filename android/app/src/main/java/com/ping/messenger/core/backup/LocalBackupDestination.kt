@@ -8,10 +8,10 @@ import javax.inject.Singleton
 /**
  * Writes backups to app-private internal storage.
  *
- * This is genuinely useful — it survives clearing the app's cache and is what a restore reads
- * from after a reinstall on the same device — but it is honest about its limits: a backup that
- * lives only on the device does not survive losing the device. The Settings screen says exactly
- * that instead of implying otherwise.
+ * Useful for what it is: the archive survives clearing the app's cache, and a passphrase-sealed
+ * one copied off the device can be restored anywhere. Its limits are stated in the backup
+ * screen rather than left implied — an archive that lives only in app-private storage does not
+ * survive uninstalling the app or losing the phone.
  */
 @Singleton
 class LocalBackupDestination @Inject constructor(

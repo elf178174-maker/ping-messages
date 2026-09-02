@@ -179,4 +179,11 @@ interface ConversationDao {
 
     @Query("SELECT id FROM conversations")
     suspend fun allIds(): List<String>
+
+    /** Export pagination for backups; ordered by id so pages cannot overlap or skip. */
+    @Query("SELECT * FROM conversations ORDER BY id ASC LIMIT :limit OFFSET :offset")
+    suspend fun page(limit: Int, offset: Int): List<ConversationEntity>
+
+    @Query("SELECT COUNT(*) FROM conversations")
+    suspend fun count(): Int
 }

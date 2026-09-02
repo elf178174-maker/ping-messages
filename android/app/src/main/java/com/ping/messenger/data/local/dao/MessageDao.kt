@@ -452,4 +452,17 @@ abstract class MessageDao {
 
     @Query("SELECT * FROM attachments WHERE localPath IS NOT NULL ORDER BY sizeBytes DESC LIMIT :limit")
     abstract suspend fun largestAttachments(limit: Int): List<AttachmentEntity>
+
+    // ---- Backup export ----------------------------------------------------
+    // Paged by (createdAt, id) rather than by offset alone so a page boundary cannot
+    // duplicate or skip a row when two messages share a timestamp.
+
+    @Query("SELECT * FROM messages ORDER BY createdAt ASC, id ASC LIMIT :limit OFFSET :offset")
+    abstract suspend fun messagePage(limit: Int, offset: Int): List<MessageEntity>
+
+    @Query("SELECT * FROM attachments ORDER BY id ASC LIMIT :limit OFFSET :offset")
+    abstract suspend fun attachmentPage(limit: Int, offset: Int): List<AttachmentEntity>
+
+    @Query("SELECT COUNT(*) FROM attachments")
+    abstract suspend fun attachmentCount(): Int
 }

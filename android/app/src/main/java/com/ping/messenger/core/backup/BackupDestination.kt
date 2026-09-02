@@ -10,8 +10,8 @@ import java.io.File
  * Settings screen shows "Cloud backup (not configured)" rather than a switch that pretends to
  * work.
  *
- * Adding a provider (Drive, S3, WebDAV) means implementing this interface and binding it in
- * [com.ping.messenger.di.BackupModule]; nothing else in the app changes. See docs/BACKUP.md.
+ * Adding a provider (Drive, S3, WebDAV) means implementing this interface and changing one
+ * binding in `di/RepositoryModule.kt`; nothing else in the app changes. See docs/BACKUP.md.
  */
 interface BackupDestination {
     val id: String

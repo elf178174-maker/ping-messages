@@ -68,6 +68,13 @@ interface UserDao {
     @Query("DELETE FROM users WHERE id = :id")
     suspend fun delete(id: String)
 
+    /** Export pagination for backups; ordered by id so pages cannot overlap or skip. */
+    @Query("SELECT * FROM users ORDER BY id ASC LIMIT :limit OFFSET :offset")
+    suspend fun page(limit: Int, offset: Int): List<UserEntity>
+
+    @Query("SELECT COUNT(*) FROM users")
+    suspend fun count(): Int
+
     @Query("SELECT COUNT(*) FROM users WHERE isContact = 1")
     fun observeContactCount(): Flow<Int>
 }
