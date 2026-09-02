@@ -642,4 +642,25 @@
     <string name="backup_inspect_summary">%1$d messages, %2$d media files, made %3$s.</string>
 
     <string name="calls_group_unsupported">Group calls need a media server, which this build does not have. See the documentation.</string>
+
+    <!-- Confirmations reported from view-models -->
+    <string name="toast_blocked">Blocked</string>
+    <string name="toast_unblocked">Unblocked</string>
+    <string name="toast_report_submitted">Report submitted</string>
+    <string name="toast_added_to_contacts">Added to contacts</string>
+    <string name="toast_hold_to_record">Hold to record</string>
+    <string name="toast_two_step_updated">Two-step verification updated</string>
+    <string name="toast_password_changed">Password changed</string>
+    <string name="toast_device_signed_out">Device signed out</string>
+    <string name="toast_other_devices_signed_out">Other devices signed out</string>
+    <string name="toast_cache_cleared">Cache cleared (%1$s freed)</string>
+    <string name="toast_status_posted">Status posted</string>
+    <string name="toast_status_deleted">Status deleted</string>
+    <string name="toast_reply_sent">Reply sent</string>
+    <string name="toast_group_updated">Group updated</string>
+    <string name="toast_group_icon_updated">Group icon updated</string>
+    <string name="toast_members_added">Members added</string>
+    <string name="toast_member_removed">Member removed</string>
+    <string name="toast_invite_link_reset">Invite link reset</string>
+    <string name="toast_backup_complete">Backup complete</string>
 </resources>

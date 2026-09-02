@@ -2,8 +2,10 @@ package com.ping.messenger.feature.status
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ping.messenger.R
 import com.ping.messenger.core.common.AppError
 import com.ping.messenger.core.common.Outcome
+import com.ping.messenger.core.common.StringProvider
 import com.ping.messenger.domain.model.StatusKind
 import com.ping.messenger.domain.model.StatusThread
 import com.ping.messenger.domain.repository.StatusRepository
@@ -33,6 +35,7 @@ data class StatusUiState(
 
 @HiltViewModel
 class StatusViewModel @Inject constructor(
+    private val strings: StringProvider,
     private val status: StatusRepository,
 ) : ViewModel() {
 
@@ -90,7 +93,7 @@ class StatusViewModel @Inject constructor(
         viewModelScope.launch {
             local.update { it.copy(posting = true) }
             when (val result = status.post(kind, text, path, colour)) {
-                is Outcome.Success -> _events.emit("Status posted")
+                is Outcome.Success -> _events.emit(strings[R.string.toast_status_posted])
                 is Outcome.Failure -> local.update { it.copy(error = result.error) }
             }
             local.update { it.copy(posting = false) }
@@ -100,14 +103,14 @@ class StatusViewModel @Inject constructor(
 
     fun delete(statusId: String) = viewModelScope.launch {
         when (val result = status.delete(statusId)) {
-            is Outcome.Success -> _events.emit("Status deleted")
+            is Outcome.Success -> _events.emit(strings[R.string.toast_status_deleted])
             is Outcome.Failure -> local.update { it.copy(error = result.error) }
         }
     }
 
     fun reply(statusId: String, authorId: String, text: String) = viewModelScope.launch {
         when (val result = status.replyTo(statusId, authorId, text)) {
-            is Outcome.Success -> _events.emit("Reply sent")
+            is Outcome.Success -> _events.emit(strings[R.string.toast_reply_sent])
             is Outcome.Failure -> local.update { it.copy(error = result.error) }
         }
     }

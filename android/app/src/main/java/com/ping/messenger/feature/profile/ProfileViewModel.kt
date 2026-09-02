@@ -2,8 +2,10 @@ package com.ping.messenger.feature.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ping.messenger.R
 import com.ping.messenger.core.common.AppError
 import com.ping.messenger.core.common.Outcome
+import com.ping.messenger.core.common.StringProvider
 import com.ping.messenger.domain.model.Group
 import com.ping.messenger.domain.model.User
 import com.ping.messenger.domain.repository.ConversationRepository
@@ -41,6 +43,7 @@ sealed interface ProfileEvent {
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
+    private val strings: StringProvider,
     private val users: UserRepository,
     private val conversations: ConversationRepository,
 ) : ViewModel() {
@@ -98,21 +101,21 @@ class ProfileViewModel @Inject constructor(
 
     fun block(id: String) = viewModelScope.launch {
         when (val result = users.block(id)) {
-            is Outcome.Success -> _events.emit(ProfileEvent.Message("Blocked"))
+            is Outcome.Success -> _events.emit(ProfileEvent.Message(strings[R.string.toast_blocked]))
             is Outcome.Failure -> fail(result.error)
         }
     }
 
     fun unblock(id: String) = viewModelScope.launch {
         when (val result = users.unblock(id)) {
-            is Outcome.Success -> _events.emit(ProfileEvent.Message("Unblocked"))
+            is Outcome.Success -> _events.emit(ProfileEvent.Message(strings[R.string.toast_unblocked]))
             is Outcome.Failure -> fail(result.error)
         }
     }
 
     fun report(id: String, reason: String) = viewModelScope.launch {
         when (val result = users.report(id, reason, emptyList(), null)) {
-            is Outcome.Success -> _events.emit(ProfileEvent.Message("Report submitted"))
+            is Outcome.Success -> _events.emit(ProfileEvent.Message(strings[R.string.toast_report_submitted]))
             is Outcome.Failure -> fail(result.error)
         }
     }

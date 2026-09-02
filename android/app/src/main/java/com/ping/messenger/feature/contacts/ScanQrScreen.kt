@@ -2,6 +2,7 @@ package com.ping.messenger.feature.contacts
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -216,7 +217,7 @@ private fun CameraScanner(
             .build()
             .also { it.setAnalyzer(executor) { image -> image.scanAndClose(onScanned) } }
 
-        runCatching {
+        try {
             provider.unbindAll()
             provider.bindToLifecycle(
                 lifecycleOwner,
@@ -224,6 +225,13 @@ private fun CameraScanner(
                 preview,
                 analysis,
             )
+        } catch (e: SecurityException) {
+            // The camera permission was revoked between the check and the bind.
+            Log.w(TAG, "Camera permission revoked before binding", e)
+        } catch (e: IllegalStateException) {
+            // No back camera, or the provider was already bound elsewhere. Either way the
+            // scanner cannot run, and the screen's explanatory copy is what is left.
+            Log.w(TAG, "Could not bind the camera", e)
         }
     }
 
@@ -270,6 +278,8 @@ private fun ImageProxy.scanAndClose(onScanned: (String) -> Unit) {
  * listener runs on the main executor, which is where binding to a lifecycle has to happen
  * anyway.
  */
+private const val TAG = "ScanQrScreen"
+
 private suspend fun ListenableFuture<ProcessCameraProvider>.awaitProvider(
     context: android.content.Context,
 ): ProcessCameraProvider = suspendCancellableCoroutine { continuation ->

@@ -2,9 +2,11 @@ package com.ping.messenger.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ping.messenger.R
 import com.ping.messenger.core.common.AppError
 import com.ping.messenger.core.common.Outcome
 import com.ping.messenger.core.common.formatBytes
+import com.ping.messenger.core.common.StringProvider
 import com.ping.messenger.core.datastore.AdvancedSettings
 import com.ping.messenger.core.datastore.AppPreferences
 import com.ping.messenger.core.datastore.AppearanceSettings
@@ -71,6 +73,7 @@ sealed interface SettingsEvent {
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    private val strings: StringProvider,
     private val preferences: AppPreferences,
     private val settings: SettingsRepository,
     private val users: UserRepository,
@@ -186,14 +189,14 @@ class SettingsViewModel @Inject constructor(
 
     fun setTwoStep(pin: String?, currentPassword: String) = busy {
         when (val result = auth.setTwoStepPin(pin, currentPassword)) {
-            is Outcome.Success -> _events.emit(SettingsEvent.Message("Two-step verification updated"))
+            is Outcome.Success -> _events.emit(SettingsEvent.Message(strings[R.string.toast_two_step_updated]))
             is Outcome.Failure -> emitFailure(result.error)
         }
     }
 
     fun changePassword(current: String, new: String) = busy {
         when (val result = auth.changePassword(current, new)) {
-            is Outcome.Success -> _events.emit(SettingsEvent.Message("Password changed"))
+            is Outcome.Success -> _events.emit(SettingsEvent.Message(strings[R.string.toast_password_changed]))
             is Outcome.Failure -> emitFailure(result.error)
         }
     }
@@ -204,14 +207,14 @@ class SettingsViewModel @Inject constructor(
 
     fun revokeDevice(id: String) = busy {
         when (val result = settings.revokeDevice(id)) {
-            is Outcome.Success -> _events.emit(SettingsEvent.Message("Device signed out"))
+            is Outcome.Success -> _events.emit(SettingsEvent.Message(strings[R.string.toast_device_signed_out]))
             is Outcome.Failure -> emitFailure(result.error)
         }
     }
 
     fun revokeOtherDevices() = busy {
         when (val result = settings.revokeOtherDevices()) {
-            is Outcome.Success -> _events.emit(SettingsEvent.Message("Other devices signed out"))
+            is Outcome.Success -> _events.emit(SettingsEvent.Message(strings[R.string.toast_other_devices_signed_out]))
             is Outcome.Failure -> emitFailure(result.error)
         }
     }
@@ -230,7 +233,7 @@ class SettingsViewModel @Inject constructor(
     fun clearCache() = busy {
         val freed = settings.clearCache()
         refreshStorage()
-        _events.emit(SettingsEvent.Message("Cache cleared (${formatBytes(freed)})"))
+        _events.emit(SettingsEvent.Message(strings[R.string.toast_cache_cleared, formatBytes(freed)]))
     }
 
     fun setAutoDownload(

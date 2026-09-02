@@ -3,8 +3,10 @@ package com.ping.messenger.feature.groups
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ping.messenger.R
 import com.ping.messenger.core.common.AppError
 import com.ping.messenger.core.common.Outcome
+import com.ping.messenger.core.common.StringProvider
 import com.ping.messenger.domain.model.Group
 import com.ping.messenger.domain.model.GroupPermission
 import com.ping.messenger.domain.model.GroupRole
@@ -51,6 +53,7 @@ sealed interface GroupEvent {
  */
 @HiltViewModel
 class GroupViewModel @Inject constructor(
+    private val strings: StringProvider,
     savedStateHandle: SavedStateHandle,
     private val groups: GroupRepository,
     private val users: UserRepository,
@@ -92,7 +95,7 @@ class GroupViewModel @Inject constructor(
     fun updateInfo(name: String?, description: String?) = busy {
         val id = uiState.value.group?.id ?: return@busy
         when (val result = groups.updateInfo(id, name, description)) {
-            is Outcome.Success -> _events.emit(GroupEvent.Message("Group updated"))
+            is Outcome.Success -> _events.emit(GroupEvent.Message(strings[R.string.toast_group_updated]))
             is Outcome.Failure -> fail(result.error)
         }
     }
@@ -100,7 +103,7 @@ class GroupViewModel @Inject constructor(
     fun updateAvatar(localPath: String) = busy {
         val id = uiState.value.group?.id ?: return@busy
         when (val result = groups.updateAvatar(id, localPath)) {
-            is Outcome.Success -> _events.emit(GroupEvent.Message("Group icon updated"))
+            is Outcome.Success -> _events.emit(GroupEvent.Message(strings[R.string.toast_group_icon_updated]))
             is Outcome.Failure -> fail(result.error)
         }
     }
@@ -108,7 +111,7 @@ class GroupViewModel @Inject constructor(
     fun addMembers(userIds: List<String>) = busy {
         val id = uiState.value.group?.id ?: return@busy
         when (val result = groups.addMembers(id, userIds)) {
-            is Outcome.Success -> _events.emit(GroupEvent.Message("Members added"))
+            is Outcome.Success -> _events.emit(GroupEvent.Message(strings[R.string.toast_members_added]))
             is Outcome.Failure -> fail(result.error)
         }
     }
@@ -116,7 +119,7 @@ class GroupViewModel @Inject constructor(
     fun removeMember(userId: String) = busy {
         val id = uiState.value.group?.id ?: return@busy
         when (val result = groups.removeMember(id, userId)) {
-            is Outcome.Success -> _events.emit(GroupEvent.Message("Member removed"))
+            is Outcome.Success -> _events.emit(GroupEvent.Message(strings[R.string.toast_member_removed]))
             is Outcome.Failure -> fail(result.error)
         }
     }
@@ -163,7 +166,7 @@ class GroupViewModel @Inject constructor(
         when (val result = groups.resetInviteLink(id)) {
             is Outcome.Success -> {
                 local.update { it.copy(inviteLink = result.value) }
-                _events.emit(GroupEvent.Message("Invite link reset"))
+                _events.emit(GroupEvent.Message(strings[R.string.toast_invite_link_reset]))
             }
             is Outcome.Failure -> fail(result.error)
         }

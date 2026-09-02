@@ -2,8 +2,10 @@ package com.ping.messenger.feature.contacts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ping.messenger.R
 import com.ping.messenger.core.common.AppError
 import com.ping.messenger.core.common.Outcome
+import com.ping.messenger.core.common.StringProvider
 import com.ping.messenger.domain.model.User
 import com.ping.messenger.domain.repository.ConversationRepository
 import com.ping.messenger.domain.repository.UserRepository
@@ -63,6 +65,7 @@ sealed interface ContactsEvent {
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class ContactsViewModel @Inject constructor(
+    private val strings: StringProvider,
     private val users: UserRepository,
     private val conversations: ConversationRepository,
 ) : ViewModel() {
@@ -158,28 +161,28 @@ class ContactsViewModel @Inject constructor(
 
     fun addContact(userId: String) = viewModelScope.launch {
         when (val result = users.addContact(userId)) {
-            is Outcome.Success -> _events.emit(ContactsEvent.Message("Added to contacts"))
+            is Outcome.Success -> _events.emit(ContactsEvent.Message(strings[R.string.toast_added_to_contacts]))
             is Outcome.Failure -> fail(result.error)
         }
     }
 
     fun block(userId: String) = viewModelScope.launch {
         when (val result = users.block(userId)) {
-            is Outcome.Success -> _events.emit(ContactsEvent.Message("Blocked"))
+            is Outcome.Success -> _events.emit(ContactsEvent.Message(strings[R.string.toast_blocked]))
             is Outcome.Failure -> fail(result.error)
         }
     }
 
     fun unblock(userId: String) = viewModelScope.launch {
         when (val result = users.unblock(userId)) {
-            is Outcome.Success -> _events.emit(ContactsEvent.Message("Unblocked"))
+            is Outcome.Success -> _events.emit(ContactsEvent.Message(strings[R.string.toast_unblocked]))
             is Outcome.Failure -> fail(result.error)
         }
     }
 
     fun report(userId: String, reason: String, note: String?) = viewModelScope.launch {
         when (val result = users.report(userId, reason, emptyList(), note)) {
-            is Outcome.Success -> _events.emit(ContactsEvent.Message("Report submitted"))
+            is Outcome.Success -> _events.emit(ContactsEvent.Message(strings[R.string.toast_report_submitted]))
             is Outcome.Failure -> fail(result.error)
         }
     }

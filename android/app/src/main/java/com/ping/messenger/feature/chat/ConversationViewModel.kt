@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.ping.messenger.R
 import com.ping.messenger.core.common.AppError
 import com.ping.messenger.core.common.Outcome
+import com.ping.messenger.core.common.StringProvider
 import com.ping.messenger.core.datastore.AppPreferences
 import com.ping.messenger.core.media.AudioRecorder
 import com.ping.messenger.core.network.NetworkMonitor
@@ -84,6 +86,7 @@ sealed interface ConversationEvent {
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class ConversationViewModel @Inject constructor(
+    private val strings: StringProvider,
     savedStateHandle: SavedStateHandle,
     private val messages: MessageRepository,
     private val conversations: ConversationRepository,
@@ -322,7 +325,7 @@ class ConversationViewModel @Inject constructor(
 
         // A recording shorter than a second is almost always an accidental tap on the mic.
         if (result.durationMs < 900) {
-            viewModelScope.launch { _events.emit(ConversationEvent.ShowMessage("Hold to record")) }
+            viewModelScope.launch { _events.emit(ConversationEvent.ShowMessage(strings[R.string.toast_hold_to_record])) }
             return
         }
 

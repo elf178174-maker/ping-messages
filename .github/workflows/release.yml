@@ -66,6 +66,12 @@ jobs:
             echo "signed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Run unit tests
+        working-directory: android
+        # A release is the one build that must not ship a known-broken app, so the tests gate
+        # it rather than running only on branch pushes.
+        run: ./gradlew :app:testReleaseUnitTest --stacktrace
+
       - name: Build the signed release APK and AAB
         working-directory: android
         env:

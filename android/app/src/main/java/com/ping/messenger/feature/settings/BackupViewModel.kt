@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ping.messenger.core.backup.BackupHandle
 import com.ping.messenger.core.backup.BackupManifest
+import com.ping.messenger.R
 import com.ping.messenger.core.common.AppError
 import com.ping.messenger.core.common.Outcome
+import com.ping.messenger.core.common.StringProvider
 import com.ping.messenger.core.datastore.AppPreferences
 import com.ping.messenger.core.datastore.BackupSettings
 import com.ping.messenger.domain.model.BackupStatus
@@ -46,6 +48,7 @@ sealed interface BackupEvent {
  */
 @HiltViewModel
 class BackupViewModel @Inject constructor(
+    private val strings: StringProvider,
     private val settings: SettingsRepository,
     private val preferences: AppPreferences,
 ) : ViewModel() {
@@ -74,7 +77,7 @@ class BackupViewModel @Inject constructor(
      */
     fun backUpNow(passphrase: String?) = viewModelScope.launch {
         when (val result = settings.runBackup(uiState.value.settings.includeMedia, passphrase)) {
-            is Outcome.Success -> _events.emit(BackupEvent.Message(SUCCESS_MESSAGE))
+            is Outcome.Success -> _events.emit(BackupEvent.Message(strings[R.string.toast_backup_complete]))
             is Outcome.Failure -> _events.emit(BackupEvent.Failed(result.error))
         }
     }
@@ -104,9 +107,5 @@ class BackupViewModel @Inject constructor(
             is Outcome.Success -> Unit
             is Outcome.Failure -> _events.emit(BackupEvent.Failed(result.error))
         }
-    }
-
-    private companion object {
-        const val SUCCESS_MESSAGE = "Backup complete"
     }
 }
