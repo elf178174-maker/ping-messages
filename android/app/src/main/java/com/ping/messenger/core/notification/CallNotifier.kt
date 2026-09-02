@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -117,12 +118,20 @@ class CallNotifier @Inject constructor(
 
     fun showIncoming(callId: String, callerName: String, avatarUrl: String?, isVideo: Boolean) {
         if (!channels.areNotificationsEnabled()) return
-        runCatching {
+        try {
             manager.notify(callId.hashCode(), incomingCall(callId, callerName, avatarUrl, isVideo))
+        } catch (e: SecurityException) {
+            // POST_NOTIFICATIONS can be revoked between the check above and this call, and a
+            // missed notification must never take the process down with it.
+            Log.w(TAG, "Notification permission revoked while posting a call", e)
         }
     }
 
     fun cancel(callId: String) = manager.cancel(callId.hashCode())
+
+    private companion object {
+        const val TAG = "CallNotifier"
+    }
 
     private fun callIntent(callId: String, action: String, isVideo: Boolean): PendingIntent =
         PendingIntent.getActivity(

@@ -254,9 +254,11 @@ database cannot leave the device through a channel the user did not choose.
 
 Things this repository does **not** do, stated here rather than discovered later:
 
-- **No cloud chat backup.** Backups are encrypted archives on the device. The
-  `BackupDestination` interface is the seam for adding a provider — see
-  [docs/BACKUP.md](docs/BACKUP.md).
+- **No cloud chat backup.** Backups are real, encrypted, restorable archives — but they are
+  written to the device. A passphrase-sealed archive can be copied off the phone and restored
+  anywhere; an automatic one is sealed with a device key and does not survive uninstalling the
+  app, which the backup screen says rather than leaving it to be discovered at restore time.
+  `BackupDestination` is the seam for adding a provider — see [docs/BACKUP.md](docs/BACKUP.md).
 - **No TURN server.** Calls work on most networks with STUN alone; roughly 10–20% need a TURN
   relay, which has to be configured. The app says so instead of ringing forever.
 - **No push provider.** Messages arrive over the app's own WebSocket while it is running, and

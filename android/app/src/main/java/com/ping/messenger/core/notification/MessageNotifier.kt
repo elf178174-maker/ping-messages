@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -138,7 +139,14 @@ class MessageNotifier @Inject constructor(
             },
         )
 
-        runCatching { manager.notify(conversation.id.hashCode(), builder.build()) }
+        try {
+            manager.notify(conversation.id.hashCode(), builder.build())
+        } catch (e: SecurityException) {
+            // POST_NOTIFICATIONS was revoked after the enabled check; drop the notification
+            // rather than crashing on a message arriving.
+            Log.w(TAG, "Notification permission revoked while posting a message", e)
+            return
+        }
         postSummary()
     }
 
@@ -212,7 +220,11 @@ class MessageNotifier @Inject constructor(
             .setStyle(NotificationCompat.InboxStyle())
             .build()
 
-        runCatching { manager.notify(SUMMARY_ID, summary) }
+        try {
+            manager.notify(SUMMARY_ID, summary)
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Notification permission revoked while posting the summary", e)
+        }
     }
 
     fun cancelConversation(conversationId: String) {
@@ -241,6 +253,7 @@ class MessageNotifier @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "MessageNotifier"
         const val KEY_REPLY_TEXT = "ping_reply_text"
         private const val NOTIFICATION_GROUP = "ping_messages"
         private const val SUMMARY_ID = 1
