@@ -8,7 +8,6 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
-import androidx.core.graphics.drawable.IconCompat
 import com.ping.messenger.R
 import com.ping.messenger.feature.calls.CallActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -72,12 +71,12 @@ class CallNotifier @Inject constructor(
                     ),
                 )
                 .addAction(
-                    IconCompat.createWithResource(context, R.drawable.ic_notification),
+                    R.drawable.ic_notification,
                     context.getString(R.string.calls_decline),
                     decline,
                 )
                 .addAction(
-                    IconCompat.createWithResource(context, R.drawable.ic_notification),
+                    R.drawable.ic_notification,
                     context.getString(R.string.calls_answer),
                     answer,
                 )
@@ -107,7 +106,7 @@ class CallNotifier @Inject constructor(
                 .setContentTitle(peerName)
                 .setContentText(context.getString(R.string.calls_title))
                 .addAction(
-                    IconCompat.createWithResource(context, R.drawable.ic_notification),
+                    R.drawable.ic_notification,
                     context.getString(R.string.calls_hang_up),
                     hangUp,
                 )
