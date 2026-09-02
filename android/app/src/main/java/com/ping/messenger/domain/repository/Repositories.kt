@@ -242,6 +242,9 @@ interface SettingsRepository {
 }
 
 interface MediaRepository {
+    /** The attachment row, so a screen sees transfer progress and the local path appearing. */
+    fun observeAttachment(attachmentId: String): Flow<Attachment?>
+
     /** Uploads a local file, returning the remote URL. Progress is written to the attachment row. */
     suspend fun upload(attachmentId: String, localPath: String, mimeType: String, kind: MessageKind): Outcome<String>
     suspend fun download(attachmentId: String): Outcome<String>

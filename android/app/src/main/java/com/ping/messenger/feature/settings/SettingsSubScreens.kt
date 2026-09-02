@@ -25,13 +25,16 @@ import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockReset
+import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Screenshot
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,6 +55,8 @@ import com.ping.messenger.domain.model.PrivacyAudience
 import com.ping.messenger.domain.model.PrivacySettings
 import com.ping.messenger.ui.components.BackButton
 import com.ping.messenger.ui.components.ConfirmDialog
+import com.ping.messenger.ui.components.PasswordField
+import com.ping.messenger.ui.components.PingTextField
 import com.ping.messenger.ui.components.SectionHeader
 import com.ping.messenger.ui.components.SettingsDivider
 import com.ping.messenger.ui.components.SettingsRow
@@ -63,10 +68,11 @@ import com.ping.messenger.ui.theme.wallpaperModifier
 
 /** Shared chrome for every settings sub-screen. */
 @Composable
-private fun SubScreen(
+internal fun SubScreen(
     title: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHost: @Composable () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Scaffold(
@@ -77,6 +83,7 @@ private fun SubScreen(
                 navigationIcon = { BackButton(onBack) },
             )
         },
+        snackbarHost = snackbarHost,
     ) { padding ->
         Column(
             Modifier
@@ -192,6 +199,8 @@ fun SecuritySettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var twoStepOpen by remember { mutableStateOf(false) }
+    var passwordOpen by remember { mutableStateOf(false) }
 
     SubScreen(stringResource(R.string.settings_security), onBack, modifier) {
         SectionHeader(stringResource(R.string.settings_security))
@@ -229,9 +238,97 @@ fun SecuritySettingsScreen(
                 },
             ),
             icon = Icons.Default.LockReset,
+            onClick = { twoStepOpen = true },
+        )
+        SettingsRow(
+            title = stringResource(R.string.settings_change_password),
+            icon = Icons.Default.Password,
+            onClick = { passwordOpen = true },
         )
         Spacer(Modifier.height(24.dp))
     }
+
+    if (twoStepOpen) {
+        // Both the PIN and the account password are required: a PIN alone would let anyone
+        // holding an unlocked phone turn the second factor off.
+        CredentialDialog(
+            title = stringResource(R.string.settings_two_step),
+            firstLabel = stringResource(R.string.settings_two_step_pin),
+            secondLabel = stringResource(R.string.auth_password),
+            confirmLabel = stringResource(R.string.action_save),
+            // Clearing the PIN field turns two-step off, which is why an empty first field is
+            // allowed here but the password never is.
+            firstOptional = state.security.twoStepEnabled,
+            onConfirm = { pin, password ->
+                viewModel.setTwoStep(pin.ifBlank { null }, password)
+                twoStepOpen = false
+            },
+            onDismiss = { twoStepOpen = false },
+        )
+    }
+
+    if (passwordOpen) {
+        CredentialDialog(
+            title = stringResource(R.string.settings_change_password),
+            firstLabel = stringResource(R.string.auth_password),
+            secondLabel = stringResource(R.string.auth_confirm_password),
+            confirmLabel = stringResource(R.string.action_save),
+            firstIsPassword = true,
+            onConfirm = { current, next ->
+                viewModel.changePassword(current, next)
+                passwordOpen = false
+            },
+            onDismiss = { passwordOpen = false },
+        )
+    }
+}
+
+/**
+ * Two secret fields and a confirm button.
+ *
+ * Shared by two-step verification and password change because both need exactly this and
+ * nothing more, and having one implementation means the "confirm is disabled until the fields
+ * are usable" rule cannot drift between them.
+ */
+@Composable
+private fun CredentialDialog(
+    title: String,
+    firstLabel: String,
+    secondLabel: String,
+    confirmLabel: String,
+    onConfirm: (String, String) -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    firstOptional: Boolean = false,
+    firstIsPassword: Boolean = true,
+) {
+    var first by remember { mutableStateOf("") }
+    var second by remember { mutableStateOf("") }
+    val ready = (firstOptional || first.isNotBlank()) && second.isNotBlank()
+
+    AlertDialog(
+        modifier = modifier,
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (firstIsPassword) {
+                    PasswordField(value = first, onValueChange = { first = it }, label = firstLabel)
+                } else {
+                    PingTextField(value = first, onValueChange = { first = it }, label = firstLabel)
+                }
+                PasswordField(value = second, onValueChange = { second = it }, label = secondLabel)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(first, second) }, enabled = ready) {
+                Text(confirmLabel)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+        },
+    )
 }
 
 // ---------------------------------------------------------------------------

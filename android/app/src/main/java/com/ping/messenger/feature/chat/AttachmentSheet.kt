@@ -220,7 +220,7 @@ private fun AttachButton(option: AttachOption) {
  * finishes, so the upload worker would find it dead. Streaming into a local file also means
  * a 500 MB video never has to fit in memory.
  */
-private fun Context.copyToCache(uri: Uri, storage: MediaStorage): String? = runCatching {
+internal fun Context.copyToCache(uri: Uri, storage: MediaStorage): String? = runCatching {
     val name = displayNameOf(uri) ?: "attachment-${System.currentTimeMillis()}"
     val target = File(storage.tempDir, "${System.nanoTime()}-$name")
     contentResolver.openInputStream(uri)?.use { input ->
@@ -236,5 +236,5 @@ private fun Context.displayNameOf(uri: Uri): String? = runCatching {
         }
 }.getOrNull()
 
-private fun Context.isVideo(uri: Uri): Boolean =
+internal fun Context.isVideo(uri: Uri): Boolean =
     contentResolver.getType(uri)?.startsWith("video/") == true

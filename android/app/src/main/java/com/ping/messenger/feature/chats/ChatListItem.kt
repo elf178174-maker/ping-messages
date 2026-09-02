@@ -67,6 +67,7 @@ fun ChatListItem(
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
     selected: Boolean = false,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     val colors = PingTheme.colors
     val description = buildRowDescription(conversation)
@@ -164,6 +165,13 @@ fun ChatListItem(
                 Spacer(Modifier.width(8.dp))
                 TrailingMarkers(conversation)
             }
+        }
+
+        // An explicit action, where a screen has exactly one worth offering. The archive is the
+        // only caller: everywhere else the row's markers are what belongs on the right.
+        if (trailing != null) {
+            Spacer(Modifier.width(4.dp))
+            trailing()
         }
     }
 }

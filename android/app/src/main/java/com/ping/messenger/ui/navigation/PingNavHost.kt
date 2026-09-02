@@ -29,11 +29,20 @@ import com.ping.messenger.feature.auth.SignUpScreen
 import com.ping.messenger.feature.auth.VerifyEmailScreen
 import com.ping.messenger.feature.auth.WelcomeScreen
 import com.ping.messenger.feature.calls.CallsScreen
+import com.ping.messenger.feature.chat.ConversationMediaScreen
 import com.ping.messenger.feature.chat.ConversationScreen
+import com.ping.messenger.feature.chat.MediaViewerScreen
+import com.ping.messenger.feature.chat.MessageInfoScreen
+import com.ping.messenger.feature.chat.StarredMessagesScreen
+import com.ping.messenger.feature.chats.ArchivedChatsScreen
 import com.ping.messenger.feature.chats.ChatsScreen
+import com.ping.messenger.feature.chats.FoldersScreen
+import com.ping.messenger.feature.chats.ForwardScreen
 import com.ping.messenger.feature.contacts.BlockedContactsScreen
 import com.ping.messenger.feature.contacts.ContactsScreen
-import com.ping.messenger.feature.contacts.MyQrCodeScreen
+import com.ping.messenger.feature.contacts.MyQrCodeRoute
+import com.ping.messenger.feature.contacts.ScanQrScreen
+import com.ping.messenger.feature.groups.AddMembersScreen
 import com.ping.messenger.feature.groups.GroupInfoScreen
 import com.ping.messenger.feature.groups.GroupInviteScreen
 import com.ping.messenger.feature.groups.GroupMembersScreen
@@ -42,12 +51,21 @@ import com.ping.messenger.feature.groups.NewGroupScreen
 import com.ping.messenger.feature.profile.ContactProfileScreen
 import com.ping.messenger.feature.profile.EditProfileScreen
 import com.ping.messenger.feature.search.SearchScreen
+import com.ping.messenger.feature.settings.AboutScreen
+import com.ping.messenger.feature.settings.AdvancedSettingsScreen
 import com.ping.messenger.feature.settings.AppearanceSettingsScreen
+import com.ping.messenger.feature.settings.BackupSettingsScreen
+import com.ping.messenger.feature.settings.ChatsSettingsScreen
+import com.ping.messenger.feature.settings.LicensesScreen
+import com.ping.messenger.feature.settings.NotificationsSettingsScreen
+import com.ping.messenger.feature.settings.StorageSettingsScreen
 import com.ping.messenger.feature.settings.DevicesScreen
 import com.ping.messenger.feature.settings.PrivacySettingsScreen
 import com.ping.messenger.feature.settings.SecuritySettingsScreen
 import com.ping.messenger.feature.settings.SettingsScreen
+import com.ping.messenger.feature.status.StatusComposerScreen
 import com.ping.messenger.feature.status.StatusScreen
+import com.ping.messenger.feature.status.StatusViewerRoute
 
 /**
  * The app's navigation graph.
@@ -237,14 +255,20 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
         composable(
             route = Routes.CONVERSATION_INFO,
             arguments = listOf(navArgument(Routes.ARG_CONVERSATION_ID) { type = NavType.StringType }),
-        ) {
+        ) { entry ->
+            // Every sub-route is built from this entry's id. Navigating to the bare route
+            // template would pass the literal "{conversationId}" as the argument, and each
+            // sub-screen would then load a group that does not exist.
+            val conversationId = entry.arguments?.getString(Routes.ARG_CONVERSATION_ID).orEmpty()
             GroupInfoScreen(
                 onBack = navController::popBackStack,
-                onOpenMembers = { navController.navigate(Routes.GROUP_MEMBERS) },
-                onAddMembers = { navController.navigate(Routes.GROUP_ADD_MEMBERS) },
-                onOpenPermissions = { navController.navigate(Routes.GROUP_PERMISSIONS) },
-                onOpenInvite = { navController.navigate(Routes.GROUP_INVITE) },
-                onOpenMedia = { },
+                onOpenMembers = { navController.navigate(Routes.groupMembers(conversationId)) },
+                onAddMembers = { navController.navigate(Routes.groupAddMembers(conversationId)) },
+                onOpenPermissions = {
+                    navController.navigate(Routes.groupPermissions(conversationId))
+                },
+                onOpenInvite = { navController.navigate(Routes.groupInvite(conversationId)) },
+                onOpenMedia = { navController.navigate(Routes.conversationMedia(conversationId)) },
                 onOpenProfile = { navController.navigate(Routes.profile(it)) },
                 onLeft = { navController.popBackStack(Routes.CHATS, inclusive = false) },
             )
@@ -300,18 +324,37 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
             )
         }
 
-        composable(Routes.GROUP_MEMBERS) {
+        composable(
+            route = Routes.GROUP_MEMBERS,
+            arguments = listOf(navArgument(Routes.ARG_CONVERSATION_ID) { type = NavType.StringType }),
+        ) {
             GroupMembersScreen(
                 onBack = navController::popBackStack,
                 onOpenProfile = { navController.navigate(Routes.profile(it)) },
             )
         }
 
-        composable(Routes.GROUP_PERMISSIONS) {
+        composable(
+            route = Routes.GROUP_ADD_MEMBERS,
+            arguments = listOf(navArgument(Routes.ARG_CONVERSATION_ID) { type = NavType.StringType }),
+        ) {
+            AddMembersScreen(
+                onBack = navController::popBackStack,
+                onAdded = { navController.popBackStack() },
+            )
+        }
+
+        composable(
+            route = Routes.GROUP_PERMISSIONS,
+            arguments = listOf(navArgument(Routes.ARG_CONVERSATION_ID) { type = NavType.StringType }),
+        ) {
             GroupPermissionsScreen(onBack = navController::popBackStack)
         }
 
-        composable(Routes.GROUP_INVITE) {
+        composable(
+            route = Routes.GROUP_INVITE,
+            arguments = listOf(navArgument(Routes.ARG_CONVERSATION_ID) { type = NavType.StringType }),
+        ) {
             GroupInviteScreen(onBack = navController::popBackStack)
         }
 
@@ -346,6 +389,148 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
 
         composable(Routes.SETTINGS_APPEARANCE) {
             AppearanceSettingsScreen(onBack = navController::popBackStack)
+        }
+
+        composable(Routes.SETTINGS_CHATS) {
+            ChatsSettingsScreen(
+                onBack = navController::popBackStack,
+                onOpenAppearance = { navController.navigate(Routes.SETTINGS_APPEARANCE) },
+                onOpenBackup = { navController.navigate(Routes.SETTINGS_BACKUP) },
+            )
+        }
+
+        composable(Routes.SETTINGS_NOTIFICATIONS) {
+            NotificationsSettingsScreen(onBack = navController::popBackStack)
+        }
+
+        composable(Routes.SETTINGS_STORAGE) {
+            StorageSettingsScreen(onBack = navController::popBackStack)
+        }
+
+        composable(Routes.SETTINGS_BACKUP) {
+            BackupSettingsScreen(onBack = navController::popBackStack)
+        }
+
+        composable(Routes.SETTINGS_ADVANCED) {
+            AdvancedSettingsScreen(onBack = navController::popBackStack)
+        }
+
+        composable(Routes.SETTINGS_ABOUT) {
+            AboutScreen(
+                onBack = navController::popBackStack,
+                onOpenLicenses = { navController.navigate(Routes.SETTINGS_LICENSES) },
+            )
+        }
+
+        composable(Routes.SETTINGS_LICENSES) {
+            LicensesScreen(onBack = navController::popBackStack)
+        }
+
+        // ---- Chats: archive, folders, forwarding -----------------------------
+
+        composable(Routes.ARCHIVED) {
+            ArchivedChatsScreen(
+                onBack = navController::popBackStack,
+                onOpenConversation = { navController.navigate(Routes.conversation(it)) },
+            )
+        }
+
+        composable(Routes.FOLDERS) {
+            FoldersScreen(onBack = navController::popBackStack)
+        }
+
+        composable(
+            route = Routes.FORWARD,
+            arguments = listOf(navArgument(Routes.ARG_MESSAGE_IDS) { type = NavType.StringType }),
+        ) { entry ->
+            val ids = entry.arguments
+                ?.getString(Routes.ARG_MESSAGE_IDS)
+                .orEmpty()
+                .split(",")
+                .filter { it.isNotBlank() }
+            ForwardScreen(
+                messageIds = ids,
+                onBack = navController::popBackStack,
+                // The result is reported by popping back to where the forward started; the
+                // conversation screen is what shows the confirmation.
+                onForwarded = { navController.popBackStack() },
+            )
+        }
+
+        // ---- Messages: starred, info, media -----------------------------------
+
+        composable(Routes.STARRED) {
+            StarredMessagesScreen(
+                onBack = navController::popBackStack,
+                onOpenMessage = { conversationId, messageId ->
+                    navController.navigate(Routes.conversation(conversationId, messageId))
+                },
+            )
+        }
+
+        composable(
+            route = Routes.MESSAGE_INFO,
+            arguments = listOf(navArgument(Routes.ARG_MESSAGE_ID) { type = NavType.StringType }),
+        ) {
+            MessageInfoScreen(onBack = navController::popBackStack)
+        }
+
+        composable(
+            route = Routes.CONVERSATION_MEDIA,
+            arguments = listOf(navArgument(Routes.ARG_CONVERSATION_ID) { type = NavType.StringType }),
+        ) {
+            ConversationMediaScreen(
+                onBack = navController::popBackStack,
+                onOpenAttachment = { navController.navigate(Routes.mediaViewer(it)) },
+            )
+        }
+
+        composable(
+            route = Routes.MEDIA_VIEWER,
+            arguments = listOf(navArgument(Routes.ARG_ATTACHMENT_ID) { type = NavType.StringType }),
+        ) {
+            MediaViewerScreen(onBack = navController::popBackStack)
+        }
+
+        // ---- Status ----------------------------------------------------------
+
+        composable(Routes.STATUS_COMPOSER) {
+            StatusComposerScreen(
+                onBack = navController::popBackStack,
+                onPosted = { navController.popBackStack() },
+            )
+        }
+
+        composable(
+            route = Routes.STATUS_VIEWER,
+            arguments = listOf(navArgument(Routes.ARG_AUTHOR_ID) { type = NavType.StringType }),
+        ) { entry ->
+            StatusViewerRoute(
+                authorId = entry.arguments?.getString(Routes.ARG_AUTHOR_ID).orEmpty(),
+                onClose = navController::popBackStack,
+            )
+        }
+
+        // ---- Contact codes ---------------------------------------------------
+
+        composable(Routes.QR_CODE) {
+            MyQrCodeRoute(
+                onBack = navController::popBackStack,
+                onScan = { navController.navigate(Routes.SCAN_QR) },
+            )
+        }
+
+        composable(Routes.SCAN_QR) {
+            ScanQrScreen(
+                onBack = navController::popBackStack,
+                onOpenConversation = { id ->
+                    navController.navigate(Routes.conversation(id)) {
+                        // Scanning is a means to an end: coming back from the conversation
+                        // should not put the camera on screen again.
+                        popUpTo(Routes.SCAN_QR) { inclusive = true }
+                    }
+                },
+            )
         }
     }
 }

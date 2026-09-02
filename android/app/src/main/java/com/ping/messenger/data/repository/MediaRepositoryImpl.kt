@@ -8,8 +8,10 @@ import com.ping.messenger.core.common.runCatchingAppSuspend
 import com.ping.messenger.core.crypto.CryptoService
 import com.ping.messenger.core.media.MediaStorage
 import com.ping.messenger.data.local.dao.MessageDao
+import com.ping.messenger.data.mapper.EntityMapper
 import com.ping.messenger.data.remote.api.PingApi
 import com.ping.messenger.data.remote.dto.UploadTicketRequest
+import com.ping.messenger.domain.model.Attachment
 import com.ping.messenger.domain.model.MessageKind
 import com.ping.messenger.domain.model.TransferState
 import com.ping.messenger.domain.repository.MediaRepository
@@ -18,6 +20,8 @@ import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -45,10 +49,16 @@ class MediaRepositoryImpl @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val crypto: CryptoService,
     private val storage: MediaStorage,
+    private val mapper: EntityMapper,
     private val dispatchers: DispatcherProvider,
 ) : MediaRepository {
 
     private val cancelled = mutableSetOf<String>()
+
+    override fun observeAttachment(attachmentId: String): Flow<Attachment?> =
+        messageDao.observeAttachment(attachmentId).map { row ->
+            row?.let { with(mapper) { it.toDomain() } }
+        }
 
     override suspend fun upload(
         attachmentId: String,

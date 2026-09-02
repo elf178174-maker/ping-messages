@@ -419,6 +419,10 @@ abstract class MessageDao {
     @Query("SELECT * FROM attachments WHERE id = :id")
     abstract suspend fun findAttachment(id: String): AttachmentEntity?
 
+    /** Observed by the media viewer, so a download finishing swaps the placeholder for the file. */
+    @Query("SELECT * FROM attachments WHERE id = :id")
+    abstract fun observeAttachment(id: String): Flow<AttachmentEntity?>
+
     @Query(
         """
         UPDATE attachments
