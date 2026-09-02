@@ -640,4 +640,6 @@
 
     <string name="backup_restore_explainer">Messages from this archive are merged into this device. Nothing already here is deleted.</string>
     <string name="backup_inspect_summary">%1$d messages, %2$d media files, made %3$s.</string>
+
+    <string name="calls_group_unsupported">Group calls need a media server, which this build does not have. See the documentation.</string>
 </resources>

@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -28,6 +29,7 @@ import com.ping.messenger.feature.auth.SignInScreen
 import com.ping.messenger.feature.auth.SignUpScreen
 import com.ping.messenger.feature.auth.VerifyEmailScreen
 import com.ping.messenger.feature.auth.WelcomeScreen
+import com.ping.messenger.feature.calls.CallActivity
 import com.ping.messenger.feature.calls.CallsScreen
 import com.ping.messenger.feature.chat.ConversationMediaScreen
 import com.ping.messenger.feature.chat.ConversationScreen
@@ -196,9 +198,13 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
         }
 
         composable(Routes.CALLS) {
+            val context = LocalContext.current
             CallsScreen(
+                // Calling back from the history places a real call rather than opening the
+                // chat: CallActivity is a separate activity because it has to be able to
+                // appear over the lock screen.
                 onStartCall = { conversationId, video ->
-                    navController.navigate(Routes.conversation(conversationId))
+                    context.startActivity(CallActivity.outgoing(context, conversationId, video))
                 },
                 onOpenAdvancedSettings = { navController.navigate(Routes.SETTINGS_ADVANCED) },
             )
@@ -241,11 +247,14 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
             ),
         ) { entry ->
             val conversationId = entry.arguments?.getString(Routes.ARG_CONVERSATION_ID).orEmpty()
+            val context = LocalContext.current
             ConversationScreen(
                 onBack = navController::popBackStack,
                 onOpenInfo = { navController.navigate(Routes.conversationInfo(it)) },
                 onOpenProfile = { navController.navigate(Routes.profile(it)) },
-                onStartCall = { _, _ -> navController.navigate(Routes.CALLS) },
+                onStartCall = { id, video ->
+                    context.startActivity(CallActivity.outgoing(context, id, video))
+                },
                 onForward = { ids -> navController.navigate(Routes.forward(ids)) },
                 onOpenMedia = { navController.navigate(Routes.mediaViewer(it)) },
                 onMessageInfo = { navController.navigate(Routes.messageInfo(it)) },
@@ -298,11 +307,17 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
             route = Routes.PROFILE,
             arguments = listOf(navArgument(Routes.ARG_USER_ID) { type = NavType.StringType }),
         ) { entry ->
+            val profileCallContext = LocalContext.current
             ContactProfileScreen(
                 userId = entry.arguments?.getString(Routes.ARG_USER_ID).orEmpty(),
                 onBack = navController::popBackStack,
                 onMessage = { navController.navigate(Routes.conversation(it)) },
-                onCall = { _, _ -> navController.navigate(Routes.CALLS) },
+                // The profile screen has a user id, not a conversation id.
+                onCall = { userId, video ->
+                    profileCallContext.startActivity(
+                        CallActivity.outgoingToUser(profileCallContext, userId, video),
+                    )
+                },
                 onOpenMedia = { navController.navigate(Routes.conversationMedia(it)) },
             )
         }

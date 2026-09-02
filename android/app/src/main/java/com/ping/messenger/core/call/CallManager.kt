@@ -498,6 +498,16 @@ class CallManager @Inject constructor(
         _controls.value = CallControls()
     }
 
+    /**
+     * Puts the call surface into a failed state with a reason.
+     *
+     * Used for refusals decided before any signalling happens - a group call, for instance -
+     * so the user sees why on the call screen rather than watching the activity close itself.
+     */
+    fun failWith(reason: String) {
+        _state.value = CallState.Failed(reason)
+    }
+
     fun reset() {
         _state.value = CallState.Idle
     }
