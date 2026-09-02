@@ -499,7 +499,7 @@ class EntityMapper(private val json: Json) {
         profilePhoto = enumOf(profilePhoto, PrivacyAudience.CONTACTS),
         about = enumOf(about, PrivacyAudience.CONTACTS),
         status = enumOf(status, PrivacyAudience.CONTACTS),
-        groups = enumOf(groups, PrivacyAudience.CONTACTS),
+        groups = enumOf(groups, PrivacyAudience.EVERYONE),
         calls = enumOf(calls, PrivacyAudience.EVERYONE),
         readReceipts = readReceipts,
         typingIndicators = typingIndicators,

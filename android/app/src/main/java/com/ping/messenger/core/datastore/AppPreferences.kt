@@ -173,7 +173,7 @@ class AppPreferences @Inject constructor(
             profilePhoto = prefs[Keys.PRIVACY_PHOTO].toAudience(PrivacyAudience.CONTACTS),
             about = prefs[Keys.PRIVACY_ABOUT].toAudience(PrivacyAudience.CONTACTS),
             status = prefs[Keys.PRIVACY_STATUS].toAudience(PrivacyAudience.CONTACTS),
-            groups = prefs[Keys.PRIVACY_GROUPS].toAudience(PrivacyAudience.CONTACTS),
+            groups = prefs[Keys.PRIVACY_GROUPS].toAudience(PrivacyAudience.EVERYONE),
             calls = prefs[Keys.PRIVACY_CALLS].toAudience(PrivacyAudience.EVERYONE),
             readReceipts = prefs[Keys.READ_RECEIPTS] ?: true,
             typingIndicators = prefs[Keys.TYPING_INDICATORS] ?: true,

@@ -426,7 +426,7 @@ data class PrivacySettings(
     val profilePhoto: PrivacyAudience = PrivacyAudience.CONTACTS,
     val about: PrivacyAudience = PrivacyAudience.CONTACTS,
     val status: PrivacyAudience = PrivacyAudience.CONTACTS,
-    val groups: PrivacyAudience = PrivacyAudience.CONTACTS,
+    val groups: PrivacyAudience = PrivacyAudience.EVERYONE,
     val calls: PrivacyAudience = PrivacyAudience.EVERYONE,
     val readReceipts: Boolean = true,
     val typingIndicators: Boolean = true,

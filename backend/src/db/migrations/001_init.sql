@@ -53,7 +53,11 @@ CREATE TABLE IF NOT EXISTS user_privacy (
     profile_photo     TEXT    NOT NULL DEFAULT 'CONTACTS',
     about             TEXT    NOT NULL DEFAULT 'CONTACTS',
     status            TEXT    NOT NULL DEFAULT 'CONTACTS',
-    groups            TEXT    NOT NULL DEFAULT 'CONTACTS',
+    -- 'EVERYONE' by default, matching what people expect from a messenger.
+    -- Defaulting this to CONTACTS would make it impossible to create a group
+    -- with someone found by username until they added you back, which breaks
+    -- the app's central "connect without a phone number" flow.
+    groups            TEXT    NOT NULL DEFAULT 'EVERYONE',
     calls             TEXT    NOT NULL DEFAULT 'EVERYONE',
     read_receipts     BOOLEAN NOT NULL DEFAULT TRUE,
     typing_indicators BOOLEAN NOT NULL DEFAULT TRUE

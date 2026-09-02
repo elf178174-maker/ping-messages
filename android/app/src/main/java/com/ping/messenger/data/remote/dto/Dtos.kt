@@ -134,7 +134,7 @@ data class PrivacySettingsDto(
     val profilePhoto: String = "CONTACTS",
     val about: String = "CONTACTS",
     val status: String = "CONTACTS",
-    val groups: String = "CONTACTS",
+    val groups: String = "EVERYONE",
     val calls: String = "EVERYONE",
     val readReceipts: Boolean = true,
     val typingIndicators: Boolean = true,

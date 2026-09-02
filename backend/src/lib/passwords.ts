@@ -1,7 +1,26 @@
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
-import { promisify } from 'node:util';
+import type { ScryptOptions } from 'node:crypto';
 
-const scrypt = promisify(scryptCallback);
+/**
+ * A promise wrapper around scrypt.
+ *
+ * Hand-written rather than `promisify`, because promisify resolves to the
+ * three-argument overload and loses the options parameter that carries the
+ * cost factors — which are the entire point of using scrypt.
+ */
+function scrypt(
+  password: string,
+  salt: Buffer,
+  keylen: number,
+  options: ScryptOptions,
+): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    scryptCallback(password, salt, keylen, options, (error, derived) => {
+      if (error) reject(error);
+      else resolve(derived);
+    });
+  });
+}
 
 /**
  * Password hashing with scrypt.
@@ -28,12 +47,12 @@ const MAX_MEM = 256 * 1024 * 1024;
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(SALT_LENGTH);
-  const derived = (await scrypt(password.normalize('NFKC'), salt, KEY_LENGTH, {
+  const derived = await scrypt(password.normalize('NFKC'), salt, KEY_LENGTH, {
     N,
     r: R,
     p: P,
     maxmem: MAX_MEM,
-  })) as Buffer;
+  });
 
   return ['scrypt', N, R, P, salt.toString('base64'), derived.toString('base64')].join('$');
 }
@@ -57,12 +76,12 @@ export async function verifyPassword(password: string, stored: string): Promise<
     if (!Number.isFinite(n) || !Number.isFinite(r) || !Number.isFinite(p)) return false;
     if (salt.length === 0 || expected.length === 0) return false;
 
-    const derived = (await scrypt(password.normalize('NFKC'), salt, expected.length, {
+    const derived = await scrypt(password.normalize('NFKC'), salt, expected.length, {
       N: n,
       r,
       p,
       maxmem: MAX_MEM,
-    })) as Buffer;
+    });
 
     return derived.length === expected.length && timingSafeEqual(derived, expected);
   } catch {
